@@ -143,79 +143,108 @@ function animateShuffle() {
 
   const wrappers = gridEl.querySelectorAll('.box-wrapper');
   const gridRect = gridEl.getBoundingClientRect();
+  const boxSize  = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--box-size'));
 
-  // Phase 1: lift all lids and create floating face-down cards
+  // Card offset to center the rectangular card within the box
+  const cardW = boxSize * 0.76;
+  const cardH = boxSize * 0.84;
+  const offX  = (boxSize - cardW) / 2;
+  const offY  = (boxSize - cardH) / 2;
+
+  // Phase 0: open all lids to reveal the current cards (identity: card i in box i)
   const floatingCards = [];
 
   wrappers.forEach((w, i) => {
     w.classList.remove('open');
-    const rect = w.getBoundingClientRect();
-    const card = document.createElement('div');
-    card.className = 'shuffle-card';
-    card.innerHTML = '<span class="card-back">?</span>';
-    card.style.left = (rect.left - gridRect.left + 6) + 'px';
-    card.style.top  = (rect.top  - gridRect.top  + 6) + 'px';
-    card.dataset.originIdx = i;
-    gridEl.appendChild(card);
-    floatingCards.push({ el: card, fromIdx: i, toIdx: i });
+    // Set card number to identity (card i+1 in box i+1) — before shuffle
+    w.querySelector('.card-number').textContent = i + 1;
   });
 
-  // Open all lids briefly
+  // Open lids
   wrappers.forEach(w => w.classList.add('open'));
 
-  // Phase 2: after a beat, compute target positions and slide cards
+  // Phase 1: after showing the cards, create floating face-up cards and then flip them
   setTimeout(() => {
-    // Build a random-looking intermediate scatter before settling
-    const centerX = gridRect.width / 2 - 30;
-    const centerY = gridRect.height / 2 - 30;
-
-    // Scatter to center
-    floatingCards.forEach(fc => {
-      const angle = Math.random() * Math.PI * 2;
-      const dist  = 20 + Math.random() * 40;
-      fc.el.style.left = (centerX + Math.cos(angle) * dist) + 'px';
-      fc.el.style.top  = (centerY + Math.sin(angle) * dist) + 'px';
+    wrappers.forEach((w, i) => {
+      const rect = w.getBoundingClientRect();
+      const card = document.createElement('div');
+      card.className = 'shuffle-card';
+      card.innerHTML = `
+        <div class="shuffle-card-inner">
+          <div class="shuffle-card-face"><span class="card-val">${i + 1}</span></div>
+          <div class="shuffle-card-back"></div>
+        </div>`;
+      card.style.left = (rect.left - gridRect.left + offX) + 'px';
+      card.style.top  = (rect.top  - gridRect.top  + offY) + 'px';
+      gridEl.appendChild(card);
+      floatingCards.push({ el: card, fromIdx: i });
     });
 
-    // Phase 3: after gather, slide to final positions
+    // Close lids now that floating cards cover them
+    wrappers.forEach(w => w.classList.remove('open'));
+
+    // Phase 2: flip all cards face-down
     setTimeout(() => {
-      // perm[i] = card in box i+1.  Card "perm[i]" was originally at box perm[i].
-      // We want to show card moving from its original box to its new box.
-      // For visual effect, just slide each floating card to a shuffled box position.
-      const rects = Array.from(wrappers).map(w => w.getBoundingClientRect());
+      floatingCards.forEach(fc => fc.el.classList.add('flipped'));
 
-      floatingCards.forEach((fc, i) => {
-        const targetRect = rects[i];
-        fc.el.style.left = (targetRect.left - gridRect.left + 6) + 'px';
-        fc.el.style.top  = (targetRect.top  - gridRect.top  + 6) + 'px';
-      });
-
-      // Phase 4: close lids and remove floating cards
+      // Phase 3: gather cards to center
       setTimeout(() => {
-        wrappers.forEach(w => w.classList.remove('open'));
+        const centerX = gridRect.width / 2 - cardW / 2;
+        const centerY = gridRect.height / 2 - cardH / 2;
 
+        floatingCards.forEach(fc => {
+          const angle = Math.random() * Math.PI * 2;
+          const dist  = 20 + Math.random() * 50;
+          fc.el.style.left = (centerX + Math.cos(angle) * dist) + 'px';
+          fc.el.style.top  = (centerY + Math.sin(angle) * dist) + 'px';
+        });
+
+        // Phase 4: slide to final (shuffled) positions
         setTimeout(() => {
-          floatingCards.forEach(fc => {
-            fc.el.style.opacity = '0';
-            setTimeout(() => fc.el.remove(), 300);
-          });
-          shuffled = true;
-          animating = false;
-          shuffleBtn.disabled = false;
+          const rects = Array.from(wrappers).map(w => w.getBoundingClientRect());
 
-          // Update card numbers hidden inside
-          wrappers.forEach((w, i) => {
-            w.querySelector('.card-number').textContent = perm[i];
+          floatingCards.forEach((fc, i) => {
+            const targetRect = rects[i];
+            fc.el.style.left = (targetRect.left - gridRect.left + offX) + 'px';
+            fc.el.style.top  = (targetRect.top  - gridRect.top  + offY) + 'px';
           });
 
-          // If on cycles tab, re-render
-          if (document.getElementById('cycles-page').classList.contains('active')) {
-            renderCycles();
-          }
-        }, 350);
-      }, 650);
-    }, 650);
-  }, 400);
+          // Phase 5: open lids, fade out floating cards, close lids
+          setTimeout(() => {
+            wrappers.forEach(w => w.classList.add('open'));
+
+            setTimeout(() => {
+              floatingCards.forEach(fc => {
+                fc.el.style.opacity = '0';
+                setTimeout(() => fc.el.remove(), 300);
+              });
+
+              // Update card numbers hidden inside
+              wrappers.forEach((w, i) => {
+                w.querySelector('.card-number').textContent = perm[i];
+              });
+
+              // Close lids
+              setTimeout(() => {
+                wrappers.forEach(w => w.classList.remove('open'));
+
+                setTimeout(() => {
+                  shuffled = true;
+                  animating = false;
+                  shuffleBtn.disabled = false;
+
+                  // If on cycles tab, re-render
+                  if (document.getElementById('cycles-page').classList.contains('active')) {
+                    renderCycles();
+                  }
+                }, 400);
+              }, 500);
+            }, 300);
+          }, 700);
+        }, 700);
+      }, 600);
+    }, 800);
+  }, 700);
 }
 
 // ── Cycle decomposition ────────────────────────────────────────
