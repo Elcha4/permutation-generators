@@ -209,37 +209,28 @@ function animateShuffle() {
             fc.el.style.top  = (targetRect.top  - gridRect.top  + offY) + 'px';
           });
 
-          // Phase 5: open lids, fade out floating cards, close lids
+          // Phase 5: update hidden card numbers, fade out floating cards, done
           setTimeout(() => {
-            wrappers.forEach(w => w.classList.add('open'));
+            // Update card numbers while lids are still closed
+            wrappers.forEach((w, i) => {
+              w.querySelector('.card-number').textContent = perm[i];
+            });
+
+            // Fade out floating cards to reveal closed boxes
+            floatingCards.forEach(fc => {
+              fc.el.style.opacity = '0';
+              setTimeout(() => fc.el.remove(), 300);
+            });
 
             setTimeout(() => {
-              floatingCards.forEach(fc => {
-                fc.el.style.opacity = '0';
-                setTimeout(() => fc.el.remove(), 300);
-              });
+              shuffled = true;
+              animating = false;
+              shuffleBtn.disabled = false;
 
-              // Update card numbers hidden inside
-              wrappers.forEach((w, i) => {
-                w.querySelector('.card-number').textContent = perm[i];
-              });
-
-              // Close lids
-              setTimeout(() => {
-                wrappers.forEach(w => w.classList.remove('open'));
-
-                setTimeout(() => {
-                  shuffled = true;
-                  animating = false;
-                  shuffleBtn.disabled = false;
-
-                  // If on cycles tab, re-render
-                  if (document.getElementById('cycles-page').classList.contains('active')) {
-                    renderCycles();
-                  }
-                }, 400);
-              }, 500);
-            }, 300);
+              if (document.getElementById('cycles-page').classList.contains('active')) {
+                renderCycles();
+              }
+            }, 350);
           }, 700);
         }, 700);
       }, 600);
