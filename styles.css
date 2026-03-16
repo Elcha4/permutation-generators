@@ -1,0 +1,349 @@
+/* ── Reset & Base ───────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #0b0d1a;
+  --surface: #151833;
+  --surface-light: #1e2347;
+  --accent: #7c5cfc;
+  --accent-glow: #a78bfa;
+  --accent2: #38bdf8;
+  --gold: #fbbf24;
+  --pink: #f472b6;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --radius: 10px;
+  --box-size: 70px;
+}
+
+html,body {
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ── Starfield canvas ──────────────────────────────────────── */
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── App shell ─────────────────────────────────────────────── */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+header { text-align: center; margin-bottom: 20px; }
+h1 {
+  font-size: 2rem;
+  background: linear-gradient(135deg, var(--accent-glow), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.subtitle {
+  color: var(--text-dim);
+  font-size: .95rem;
+  margin-top: 4px;
+}
+
+/* ── Controls ──────────────────────────────────────────────── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.controls label {
+  font-weight: 600;
+  font-size: .95rem;
+}
+
+#n-input {
+  width: 180px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.n-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 32px;
+  background: var(--surface-light);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--accent-glow);
+}
+
+.btn {
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .2s;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.btn:active { transform: scale(.96); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #6344e0);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(124,92,252,.35);
+}
+.btn-primary:hover {
+  box-shadow: 0 0 28px rgba(124,92,252,.55);
+}
+
+/* ── Tabs ──────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  background: var(--surface);
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  padding: 9px 28px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  background: var(--surface-light);
+  color: var(--accent-glow);
+  border-color: var(--accent);
+  border-bottom-color: var(--surface-light);
+}
+
+/* ── Pages ─────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Grid page ─────────────────────────────────────────────── */
+.perspective-wrapper {
+  perspective: 900px;
+  display: flex;
+  justify-content: center;
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+  transform: rotateX(18deg);
+  transform-style: preserve-3d;
+  padding: 20px;
+}
+
+/* ── 3D Box ────────────────────────────────────────────────── */
+.box-wrapper {
+  width: var(--box-size);
+  height: var(--box-size);
+  perspective: 500px;
+  cursor: pointer;
+}
+
+.box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .15s;
+}
+.box-wrapper:hover .box {
+  transform: translateY(-3px);
+}
+
+/* Box base (bottom of the box) */
+.box-base {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--surface-light), var(--surface));
+  border: 1.5px solid rgba(124,92,252,.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  overflow: hidden;
+}
+
+.box-label {
+  font-weight: 800;
+  font-size: calc(var(--box-size) * .3);
+  color: var(--accent-glow);
+  text-shadow: 0 0 10px rgba(124,92,252,.4);
+  z-index: 1;
+  user-select: none;
+  transition: opacity .25s;
+}
+
+/* Card inside the box */
+.box-card {
+  position: absolute;
+  inset: 4px;
+  border-radius: calc(var(--radius) - 2px);
+  background: linear-gradient(135deg, #1a1040, #261860);
+  border: 1px dashed rgba(167,139,250,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .25s;
+}
+
+.card-number {
+  font-weight: 900;
+  font-size: calc(var(--box-size) * .32);
+  background: linear-gradient(135deg, var(--gold), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Lid (top of the box) */
+.box-lid {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, #252b5e, #1c2050);
+  border: 1.5px solid rgba(124,92,252,.35);
+  transform-origin: top center;
+  transition: transform .4s cubic-bezier(.4,.0,.2,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 6px 16px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  z-index: 2;
+}
+
+.lid-label {
+  font-weight: 800;
+  font-size: calc(var(--box-size) * .3);
+  color: var(--accent-glow);
+  text-shadow: 0 0 10px rgba(124,92,252,.4);
+  user-select: none;
+}
+
+/* Lid opening */
+.box-wrapper.open .box-lid {
+  transform: rotateX(-110deg);
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+.box-wrapper.open .box-card {
+  opacity: 1;
+}
+
+/* ── Shuffle animation cards ───────────────────────────────── */
+.shuffle-card {
+  position: absolute;
+  width: calc(var(--box-size) - 12px);
+  height: calc(var(--box-size) - 12px);
+  border-radius: calc(var(--radius) - 2px);
+  background: linear-gradient(135deg, #2a1860, #3b2080);
+  border: 1px solid rgba(167,139,250,.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+  transition: left .6s cubic-bezier(.4,0,.2,1), top .6s cubic-bezier(.4,0,.2,1), opacity .3s;
+  box-shadow: 0 4px 16px rgba(124,92,252,.3);
+}
+
+.shuffle-card .card-back {
+  font-size: calc(var(--box-size) * .28);
+  color: rgba(167,139,250,.5);
+}
+
+/* ── Cycle page ────────────────────────────────────────────── */
+.cycles-container {
+  position: relative;
+  min-height: 500px;
+}
+
+.arrows-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.arrows-svg line, .arrows-svg path {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+  opacity: .7;
+}
+.arrows-svg .arrowhead {
+  fill: var(--accent);
+  opacity: .7;
+}
+
+/* Self-loop */
+.arrows-svg .self-loop {
+  stroke: var(--pink);
+  fill: none;
+  opacity: .7;
+}
+.arrows-svg .self-loop-head {
+  fill: var(--pink);
+  opacity: .7;
+}
+
+/* Cycle box in cycle view */
+.cycle-box-wrapper {
+  position: absolute;
+  width: var(--box-size);
+  height: var(--box-size);
+  perspective: 500px;
+  cursor: pointer;
+  transition: left .5s, top .5s;
+}
+
+.cycle-label {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .7rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  :root { --box-size: 50px; }
+  h1 { font-size: 1.4rem; }
+  .grid { gap: 6px; padding: 10px; }
+}

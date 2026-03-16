@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permutation Visualizer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+
+  <div class="app">
+    <header>
+      <h1>Permutation Visualizer</h1>
+      <p class="subtitle">Explore how a bijection <em>f</em>&thinsp;:&thinsp;[N]&thinsp;&rarr;&thinsp;[N] shuffles cards into boxes</p>
+    </header>
+
+    <div class="controls">
+      <label for="n-input">Choose N&thinsp;:</label>
+      <input type="range" id="n-input" min="2" max="100" value="9">
+      <span id="n-display" class="n-badge">9</span>
+      <button id="shuffle-btn" class="btn btn-primary">Shuffle</button>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="grid">Grid View</button>
+      <button class="tab" data-tab="cycles">Cycle View</button>
+    </nav>
+
+    <section id="grid-page" class="page active">
+      <div class="perspective-wrapper">
+        <div id="grid" class="grid"></div>
+      </div>
+    </section>
+
+    <section id="cycles-page" class="page">
+      <div id="cycles-container" class="cycles-container">
+        <svg id="arrows-svg" class="arrows-svg"></svg>
+        <div id="cycle-nodes"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
